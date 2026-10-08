@@ -1,0 +1,60 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Hollow Crown validator</title>
+<style>body{background:#111;color:#ccc;font:12px monospace;padding:12px} canvas{image-rendering:pixelated;border:1px solid #333;margin:4px} .bad{color:#f66} .ok{color:#6f6}</style></head>
+<body>
+<h3>World + dungeon validation</h3>
+<pre id="out"></pre>
+<div id="maps"></div>
+<script src="../js/engine.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/world.js"></script>
+<script src="../js/dungeon.js"></script>
+<script>
+const out = document.getElementById('out');
+const log = (s, cls) => { const sp = document.createElement('span'); sp.className = cls || ''; sp.textContent = s + '\n'; out.appendChild(sp); };
+const results = { world: [], dungeons: {} };
+try {
+  const wp = validateWorld();
+  results.world = wp;
+  log('World: ' + (wp.length ? wp.length + ' problems' : 'OK'), wp.length ? 'bad' : 'ok');
+  wp.forEach(p => log('  ' + p, 'bad'));
+  // overworld picture
+  const c = document.createElement('canvas'); c.width = 16 * 16 * 4; c.height = 8 * 11 * 4; c.style.width = c.width * 1 + 'px';
+  const g = c.getContext('2d');
+  const col = { [T.FLOOR]: null, [T.TREE]: '#1c6c1c', [T.ROCK]: '#7c4c1c', [T.WATER]: '#2050d0', [T.BUSH]: '#40a040', [T.GRAVE]: '#ddd', [T.CAVE]: '#000', [T.STAIRS]: '#000', [T.DOCK]: '#a07040', [T.BRIDGE]: '#c09060', [T.CRACK]: '#c04040', [T.FLOWER]: '#f08080', [T.STATUE]: '#888', [T.FACADE]: '#bbb', [T.PILLAR]: '#999', [T.DOOR]: '#f0f', [T.SBUSH]: '#f0f000', [T.PROCK]: '#f08000' };
+  for (let sy = 0; sy < 8; sy++) for (let sx = 0; sx < 16; sx++) {
+    const s = World.screens[sy][sx];
+    for (let y = 0; y < 11; y++) for (let x = 0; x < 16; x++) {
+      const t = s.tiles[y * 16 + x];
+      g.fillStyle = col[t] || BIOMES[s.biome].floor;
+      g.fillRect((sx * 16 + x) * 4, (sy * 11 + y) * 4, 4, 4);
+    }
+    g.strokeStyle = 'rgba(0,0,0,0.4)'; g.strokeRect(sx * 64, sy * 44, 64, 44);
+  }
+  document.getElementById('maps').appendChild(c);
+  for (let q = 1; q <= 2; q++) for (let l = 1; l <= 9; l++) {
+    const dg = getDungeon(l, q);
+    if (!dg) { log(`Q${q} L${l}: GENERATION FAILED`, 'bad'); results.dungeons[q + ':' + l] = ['failed']; continue; }
+    const pr = validateDungeon(dg);
+    results.dungeons[q + ':' + l] = pr;
+    const locks = [...dg.edges.values()].filter(e => e.type === 'locked').length;
+    const keys = [...dg.rooms.values()].filter(r => r.item === 'key').length;
+    log(`Q${q} L${l} ${dg.def.name}: rooms=${dg.rooms.size} locks=${locks} keys=${keys} ` + (pr.length ? pr.join('; ') : 'OK'), pr.length ? 'bad' : 'ok');
+    if (q === 1) {
+      const dc = document.createElement('canvas'); dc.width = 8 * 14; dc.height = 8 * 10; dc.style.width = dc.width * 2 + 'px';
+      const dg2 = dc.getContext('2d');
+      const kc = { start: '#0f0', boss: '#f00', shard: '#ff0', sage: '#ff0', item: '#0ff', hint: '#888', normal: '#246' };
+      for (const r of dg.rooms.values()) { dg2.fillStyle = kc[r.kind]; dg2.fillRect(r.x * 14 + 2, r.y * 10 + 2, 10, 6); if (r.item === 'key') { dg2.fillStyle = '#fc0'; dg2.fillRect(r.x * 14 + 6, r.y * 10 + 4, 2, 2); } }
+      for (const [k, e] of dg.edges) {
+        const [a, b] = k.split('|').map(Number);
+        const ax = a % 8, ay = (a / 8) | 0, bx = b % 8, by = (b / 8) | 0;
+        dg2.fillStyle = { open: '#8af', locked: '#fc0', shutter: '#f80', bomb: '#a33' }[e.type];
+        dg2.fillRect(((ax + bx) / 2) * 14 + 6, ((ay + by) / 2) * 10 + 4, 2, 2);
+      }
+      document.getElementById('maps').appendChild(dc);
+    }
+  }
+} catch (err) { log('EXCEPTION ' + err.stack, 'bad'); }
+window.__results = results;
+</script>
+</body></html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hollow Crown Audio Test</title>
+<style>
+  body { background: #111; color: #ddd; font: 14px/1.4 monospace; margin: 16px; }
+  h1 { font-size: 18px; color: #fc6; }
+  h2 { font-size: 14px; color: #9cf; margin: 18px 0 6px; }
+  button { background: #222; color: #eee; border: 1px solid #555; padding: 6px 10px; margin: 3px; font: inherit; cursor: pointer; }
+  button:hover { background: #333; }
+  button.on { background: #463; border-color: #8c6; }
+  #status { color: #8c8; margin-top: 12px; }
+</style>
+</head>
+<body>
+<h1>The Hollow Crown: audio audition</h1>
+<div>
+  <button id="stop">stop music</button>
+  <button id="mute">mute</button>
+  <button id="low">low health: off</button>
+</div>
+<h2>Music (looping)</h2><div id="music"></div>
+<h2>Jingles</h2><div id="jingles"></div>
+<h2>SFX</h2><div id="sfx"></div>
+<div id="status">Click anything to start audio.</div>
+<script src="../js/audio.js"></script>
+<script>
+  var status = document.getElementById('status');
+  function say(s) { status.textContent = s + '   (current music: ' + Sound.current + ')'; }
+  function btn(parent, label, fn) {
+    var b = document.createElement('button');
+    b.textContent = label;
+    b.onclick = function () { Sound.init(); fn(b); };
+    document.getElementById(parent).appendChild(b);
+    return b;
+  }
+  Sound.list.music.forEach(function (n) { btn('music', n, function () { Sound.music(n); say('music: ' + n); }); });
+  Sound.list.jingles.forEach(function (n) {
+    btn('jingles', n, function () { say('jingle: ' + n); Sound.jingle(n, function () { say('jingle done: ' + n); }); });
+  });
+  Sound.list.sfx.forEach(function (n) { btn('sfx', n, function () { Sound.sfx(n); say('sfx: ' + n); }); });
+  document.getElementById('stop').onclick = function () { Sound.init(); Sound.stopMusic(); say('stopped'); };
+  document.getElementById('mute').onclick = function () { Sound.init(); this.textContent = Sound.toggleMute() ? 'unmute' : 'mute'; };
+  var low = false;
+  document.getElementById('low').onclick = function () {
+    Sound.init(); low = !low; Sound.lowHealth(low);
+    this.textContent = 'low health: ' + (low ? 'on' : 'off'); this.className = low ? 'on' : '';
+  };
+</script>
+</body>
+</html>

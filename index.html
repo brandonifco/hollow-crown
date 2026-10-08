@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>The Hollow Crown</title>
+<meta name="description" content="An original NES-style top-down action-adventure: find the eight Dawn Shards and end the Hollow King.">
+<style>
+  :root { --bg: #000; --fg: #c8c8c8; --dim: #6c6c6c; --accent: #fc9838; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: ui-monospace, Menlo, Consolas, monospace; overflow: hidden; }
+  #wrap { position: fixed; inset: 0 0 28px 0; display: flex; align-items: center; justify-content: center; }
+  #screen { image-rendering: pixelated; image-rendering: crisp-edges; background: #000; box-shadow: 0 0 40px rgba(252,152,56,0.08); }
+  #help { position: fixed; left: 0; right: 0; bottom: 0; height: 28px; line-height: 28px; text-align: center; font-size: 12px; color: var(--dim); letter-spacing: 0.04em; }
+  #help b { color: var(--fg); font-weight: 600; }
+  #touch { display: none; position: fixed; inset: 0; pointer-events: none; }
+  body.touch #wrap { inset: 0 0 46% 0; }
+  body.touch #help { display: none; }
+  .tb { position: absolute; pointer-events: auto; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.25); color: #ddd; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font: 700 18px ui-monospace, monospace; user-select: none; -webkit-user-select: none; touch-action: none; }
+  .dp { width: 56px; height: 56px; border-radius: 10px; }
+  #t-up { left: 72px; bottom: 140px; } #t-down { left: 72px; bottom: 28px; } #t-left { left: 16px; bottom: 84px; } #t-right { left: 128px; bottom: 84px; }
+  #t-a { right: 20px; bottom: 90px; width: 70px; height: 70px; } #t-b { right: 104px; bottom: 50px; width: 70px; height: 70px; }
+  #t-start { right: 20px; bottom: 16px; width: 72px; height: 32px; border-radius: 16px; font-size: 12px; }
+  #t-sel { right: 104px; bottom: 6px; width: 72px; height: 32px; border-radius: 16px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="screen" width="256" height="240"></canvas></div>
+<div id="help"><b>Arrows/WASD</b> move · <b>Z</b> sword · <b>X</b> item · <b>Enter</b> inventory · <b>Shift</b> save &amp; quit (in inventory) · <b>M</b> mute · gamepad supported</div>
+<div id="touch">
+  <div class="tb dp" id="t-up" data-btn="up">▲</div>
+  <div class="tb dp" id="t-down" data-btn="down">▼</div>
+  <div class="tb dp" id="t-left" data-btn="left">◀</div>
+  <div class="tb dp" id="t-right" data-btn="right">▶</div>
+  <div class="tb" id="t-a" data-btn="a">A</div>
+  <div class="tb" id="t-b" data-btn="b">B</div>
+  <div class="tb" id="t-start" data-btn="start">START</div>
+  <div class="tb" id="t-sel" data-btn="select">SELECT</div>
+</div>
+<script>
+  // version stamp so browsers never run a stale cached copy after an update
+  window.HC_VERSION = '1.0.0';
+  ['engine', 'audio', 'sprites', 'data', 'world', 'dungeon', 'entities', 'enemies', 'game']
+    .forEach(n => document.write('<script src="js/' + n + '.js?v=' + window.HC_VERSION + '-' + Date.now() + '"><\/script>'));
+</script>
+</body>
+</html>
